@@ -1,5 +1,6 @@
 PODS:
   - Alamofire (3.1.5)
+  - AsyncSwift (1.6.4)
   - FMDB (2.6):
     - FMDB/standard (= 2.6)
   - FMDB/standard (2.6)
@@ -10,6 +11,7 @@ PODS:
 
 DEPENDENCIES:
   - Alamofire (~> 3.0)
+  - AsyncSwift
   - FMDB
   - SDWebImage (~> 3.7)
   - SwiftyJSON (from `https://github.com/SwiftyJSON/SwiftyJSON.git`)
@@ -25,10 +27,11 @@ CHECKOUT OPTIONS:
 
 SPEC CHECKSUMS:
   Alamofire: 5f730ba29fd113b7ddd71c1e65d0c630acf5d7b0
+  AsyncSwift: 3c90beed237324f1b57e1f1c414dc5501985d208
   FMDB: c1968bab3ab0aed38f66cb778ae1e7fa9a652b6e
   SDWebImage: 247edd7dd80dd6124197b0d6a17846fe9d1df968
   SwiftyJSON: 04ccea08915aa0109039157c7974cf0298da292a
 
-PODFILE CHECKSUM: 6638b49b4f1b8a0604f1ec89620af1f7a415d5ed
+PODFILE CHECKSUM: 8b9171d1c70ff890eb65a489c37f91d609c61af5
 
 COCOAPODS: 1.0.0.beta.2

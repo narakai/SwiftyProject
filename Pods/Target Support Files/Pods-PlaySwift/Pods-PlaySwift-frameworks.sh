@@ -85,12 +85,14 @@ strip_invalid_archs() {
 
 if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_framework "Pods-PlaySwift/Alamofire.framework"
+  install_framework "Pods-PlaySwift/Async.framework"
   install_framework "Pods-PlaySwift/FMDB.framework"
   install_framework "Pods-PlaySwift/SDWebImage.framework"
   install_framework "Pods-PlaySwift/SwiftyJSON.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "Pods-PlaySwift/Alamofire.framework"
+  install_framework "Pods-PlaySwift/Async.framework"
   install_framework "Pods-PlaySwift/FMDB.framework"
   install_framework "Pods-PlaySwift/SDWebImage.framework"
   install_framework "Pods-PlaySwift/SwiftyJSON.framework"

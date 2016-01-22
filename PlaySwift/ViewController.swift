@@ -10,12 +10,14 @@ import UIKit
 import Alamofire
 import SwiftyJSON
 import SDWebImage
+import Async
 
 class ViewController: UITableViewController {
 //    var data = DataModel()
     var photos = [PhotoInfo]()
     private var bgColor = UIColor()
     private var txtColor = UIColor()
+    var emptyDic = [String: UIImageColors]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,32 +31,10 @@ class ViewController: UITableViewController {
         if let loadedPhotos = FMDBHelper.loadData() {
             if !loadedPhotos.isEmpty {
                 photos = loadedPhotos
-                let randomIndex = Int(arc4random_uniform(UInt32(photos.count)))
-                print("random index is \(randomIndex)")
-                let randomIndexUrl = photos[randomIndex].url
-
-
-                if let image = UIImage(named: "testPic") {
-                    let colors = image.getColors(CGSize(width: 100, height: 100))
-                    //            let colors = image.getColors()
-                    bgColor = colors.backgroundColor
-                    txtColor = colors.primaryColor
-                    self.navigationController?.navigationBar.barTintColor = colors.secondaryColor
-                    self.navigationController?.navigationBar.translucent = false;
-                }
-
+//                randomIndex = Int(arc4random_uniform(UInt32(photos.count)))
+//                print("random index is \(randomIndex)")
                 tableView.reloadData()
-            } else {
-                if let image = UIImage(named: "testPic") {
-                    let colors = image.getColors(CGSize(width: 100, height: 100))
-                    //            let colors = image.getColors()
-                    bgColor = colors.backgroundColor
-                    txtColor = colors.primaryColor
-                    self.navigationController?.navigationBar.barTintColor = colors.secondaryColor
-                    self.navigationController?.navigationBar.translucent = false;
-                }
             }
-
         }
     }
 
@@ -90,6 +70,8 @@ class ViewController: UITableViewController {
         if !photos.isEmpty {
             FMDBHelper.deleteData()
         }
+
+        emptyDic.removeAll()
 
         Alamofire.request(.GET, "https://api.500px.com/v1/photos", parameters: ["consumer_key": "gvSt0s93UigEdo2LVVgRmnL1XPnXpLOx15skW2sN"]).responseJSON() {
             response in
@@ -128,19 +110,51 @@ class ViewController: UITableViewController {
         let progressView = cell.viewWithTag(101) as! UIProgressView
         let pictureView = cell.viewWithTag(102) as! UIImageView
 
-        cell.backgroundColor = bgColor
-        label.textColor = txtColor
-
         if photos.isEmpty {
             label.text = "test"
         } else {
             let imageURL = photos[indexPath.row].url
 //            print(imageURL)
-            pictureView.sd_setImageWithURL(NSURL(string: imageURL), placeholderImage: UIImage(named: "testPic"))
+//            pictureView.sd_setImageWithURL(NSURL(string: imageURL), placeholderImage: UIImage(named: "testPic"))
+            pictureView.sd_setImageWithURL(NSURL(string: imageURL))
             label.text = "\(indexPath.row)"
             progressView.setProgress(Float(arc4random()) / Float(UINT32_MAX), animated: true)
         }
 
+        if let tempImage = pictureView.image {
+            if let tempColors = self.emptyDic[self.photos[indexPath.row].url] {
+                self.bgColor = tempColors.backgroundColor
+                self.txtColor = tempColors.primaryColor
+                cell.backgroundColor = self.bgColor
+                label.textColor = self.txtColor
+            } else {
+                getColorAsynchronously(tempImage, withCompletion: {colors in
+                    self.emptyDic[self.photos[indexPath.row].url] = colors
+                    self.bgColor = colors.backgroundColor
+                    self.txtColor = colors.primaryColor
+                    print(colors.backgroundColor)
+                    cell.backgroundColor = self.bgColor
+                    label.textColor = self.txtColor
+                })
+//                let priority = DISPATCH_QUEUE_PRIORITY_HIGH
+//                dispatch_async(dispatch_get_global_queue(priority, 0)) {
+//                    // do some task
+//
+//                    self.emptyDic[self.photos[indexPath.row].url] = colors
+//                    self.bgColor = colors.backgroundColor
+//                    self.txtColor = colors.primaryColor
+//                    print(colors.backgroundColor)
+//                    dispatch_async(dispatch_get_main_queue()) {
+//                        // update some UI
+//                        cell.backgroundColor = self.bgColor
+//                        label.textColor = self.txtColor
+//                    }
+//                }
+            }
+        }
+
+//        self.navigationController?.navigationBar.barTintColor = colors.secondaryColor
+//        self.navigationController?.navigationBar.translucent = false;
         return cell
     }
 
@@ -149,5 +163,14 @@ class ViewController: UITableViewController {
 //        tableView.deselectRowAtIndexPath(indexPath, animated: true)
 //    }
 
+    //ensure the completion handler is always called on the main queue
+    func getColorAsynchronously(tempImage: UIImage, withCompletion completionHandler: (UIImageColors) -> ()) {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
+            let colors = tempImage.getColors(CGSize(width: 100, height: 100))
+            dispatch_async(dispatch_get_main_queue()) {
+                completionHandler(colors)
+            }
+        }
+    }
 }
 
