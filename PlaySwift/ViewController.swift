@@ -17,7 +17,8 @@ class ViewController: UITableViewController {
     var photos = [PhotoInfo]()
     private var bgColor = UIColor()
     private var txtColor = UIColor()
-    var emptyDic = [String: UIImageColors]()
+    private var barTintColor = UIColor(red: 0, green: 151 / 255, blue: 122 / 255, alpha: 1)
+    private var emptyDic = [String: UIImageColors]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -71,7 +72,7 @@ class ViewController: UITableViewController {
             FMDBHelper.deleteData()
         }
 
-        emptyDic.removeAll()
+//        emptyDic.removeAll()
 
         Alamofire.request(.GET, "https://api.500px.com/v1/photos", parameters: ["consumer_key": "gvSt0s93UigEdo2LVVgRmnL1XPnXpLOx15skW2sN"]).responseJSON() {
             response in
@@ -111,49 +112,58 @@ class ViewController: UITableViewController {
         let pictureView = cell.viewWithTag(102) as! UIImageView
 
         if photos.isEmpty {
-            label.text = "test"
+            label.text = "Pull to refresh"
         } else {
             let imageURL = photos[indexPath.row].url
 //            print(imageURL)
 //            pictureView.sd_setImageWithURL(NSURL(string: imageURL), placeholderImage: UIImage(named: "testPic"))
-            pictureView.sd_setImageWithURL(NSURL(string: imageURL))
-            label.text = "\(indexPath.row)"
-            progressView.setProgress(Float(arc4random()) / Float(UINT32_MAX), animated: true)
-        }
-
-        if let tempImage = pictureView.image {
-            if let tempColors = self.emptyDic[self.photos[indexPath.row].url] {
-                self.bgColor = tempColors.backgroundColor
-                self.txtColor = tempColors.primaryColor
-                cell.backgroundColor = self.bgColor
-                label.textColor = self.txtColor
-            } else {
-                getColorAsynchronously(tempImage, withCompletion: {colors in
-                    self.emptyDic[self.photos[indexPath.row].url] = colors
-                    self.bgColor = colors.backgroundColor
-                    self.txtColor = colors.primaryColor
-                    print(colors.backgroundColor)
-                    cell.backgroundColor = self.bgColor
-                    label.textColor = self.txtColor
-                })
-//                let priority = DISPATCH_QUEUE_PRIORITY_HIGH
-//                dispatch_async(dispatch_get_global_queue(priority, 0)) {
-//                    // do some task
+            pictureView.sd_setImageWithURL(NSURL(string: imageURL)) {
+                (UIImage img, NSError err, SDImageCacheType cacheType, NSURL imgUrl) -> Void in
+                if img != nil {
+                    if let tempColors = self.emptyDic["\(imgUrl)"] {
+                        self.bgColor = tempColors.backgroundColor
+                        self.txtColor = tempColors.primaryColor
+                        cell.backgroundColor = self.bgColor
+                        label.textColor = self.txtColor
+                        print("row color cached in \(indexPath.row) is \(tempColors.backgroundColor)")
+                    } else {
+                        self.getColorAsynchronously(img, withCompletion: {
+                            colors in
+                            self.emptyDic["\(imgUrl)"] = colors
+                            self.bgColor = colors.backgroundColor
+                            self.txtColor = colors.primaryColor
+                            print("row color in \(indexPath.row) is \(colors.backgroundColor)")
+                            cell.backgroundColor = self.bgColor
+                            label.textColor = self.txtColor
+                        })
+                    }
+                } else {
+                    print("error \(indexPath.row)")
+                }
+//                        let priority = DISPATCH_QUEUE_PRIORITY_HIGH
+//                        dispatch_async(dispatch_get_global_queue(priority, 0)) {
+//                            // do some task
 //
-//                    self.emptyDic[self.photos[indexPath.row].url] = colors
-//                    self.bgColor = colors.backgroundColor
-//                    self.txtColor = colors.primaryColor
-//                    print(colors.backgroundColor)
-//                    dispatch_async(dispatch_get_main_queue()) {
-//                        // update some UI
-//                        cell.backgroundColor = self.bgColor
-//                        label.textColor = self.txtColor
+//                            self.emptyDic[self.photos[indexPath.row].url] = colors
+//                            self.bgColor = colors.backgroundColor
+//                            self.txtColor = colors.primaryColor
+//                            print(colors.backgroundColor)
+//                            dispatch_async(dispatch_get_main_queue()) {
+//                                // update some UI
+//                                cell.backgroundColor = self.bgColor
+//                                label.textColor = self.txtColor
+//                            }
+//                        }
 //                    }
 //                }
             }
+            label.text = "\(indexPath.row)"
+            progressView.setProgress(Float(arc4random()) / Float(UINT32_MAX), animated: true)
+
+
         }
 
-//        self.navigationController?.navigationBar.barTintColor = colors.secondaryColor
+        self.navigationController?.navigationBar.barTintColor = barTintColor
 //        self.navigationController?.navigationBar.translucent = false;
         return cell
     }
@@ -166,7 +176,7 @@ class ViewController: UITableViewController {
     //ensure the completion handler is always called on the main queue
     func getColorAsynchronously(tempImage: UIImage, withCompletion completionHandler: (UIImageColors) -> ()) {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
-            let colors = tempImage.getColors(CGSize(width: 100, height: 100))
+            let colors = tempImage.getColors(CGSize(width: 50, height: 50))
             dispatch_async(dispatch_get_main_queue()) {
                 completionHandler(colors)
             }
