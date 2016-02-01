@@ -52,6 +52,7 @@
                                         <constraint firstItem="ske-ZW-sr9" firstAttribute="leading" secondItem="ZC2-nF-dNl" secondAttribute="leading" id="qHg-hC-uoQ"/>
                                     </constraints>
                                 </tableViewCellContentView>
+                                <color key="backgroundColor" red="1" green="0.54957339638157898" blue="0.3857421875" alpha="1" colorSpace="calibratedRGB"/>
                             </tableViewCell>
                         </prototypes>
                         <connections>
